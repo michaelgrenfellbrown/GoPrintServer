@@ -1,9 +1,8 @@
 {
-    "shop_name": "Coffee Haven",
-    "shop_address": "123 Java Lane, Mocha City",
-    "logo_path": "static/logo.png",
-    "cost_per_page": 0.50,
-    "printer_uri": "ipp://localhost:631/printers/my_printer",
-    "access_code": "12345"
-  }
-  
+  "ShopName": "My Little Shoppe",
+  "ShopAddress": "1 Right Over Here",
+  "CostPerPage": 0.25,
+  "PrinterURI": "ipp://localhost:631/printers/my_printer",
+  "AccessCode": "43822",
+  "LogoPath": "static/logo.png"
+}

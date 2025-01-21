@@ -46,6 +46,7 @@ type Config struct {
 	CostPerPage float64 `json:"CostPerPage"`
 	PrinterURI  string  `json:"PrinterURI"`
 	AccessCode  string  `json:"AccessCode"`
+	LogoPath    string  `json:"LogoPath"`
 }
 
 // Global AppConfig instance
@@ -68,7 +69,7 @@ func LoadConfig(path string) error {
 
 // SaveConfig saves the current configuration to the JSON file
 func SaveConfig() error {
-	file, err := os.Create("config.json")
+	file, err := os.Create("config/config.json")
 	if err != nil {
 		return err
 	}

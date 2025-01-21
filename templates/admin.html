@@ -2,34 +2,91 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Portal</title>
+    <script>
+        function regenerateAccessCode() {
+            fetch('/admin/regenerate-access-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to regenerate access code');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('accessCode').value = data.newAccessCode;
+                alert('Access code regenerated successfully!');
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Error regenerating access code.');
+            });
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        form {
+            width: 400px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
     <h1>Admin Portal</h1>
-
-    <!-- Section to display current configuration -->
-    <h2>Current Configuration</h2>
-    <form action="/admin/update-config" method="POST">
+    <form method="POST" action="/admin">
         <label for="shopName">Shop Name:</label>
-        <input type="text" id="shopName" name="shopName" value="{{.ShopName}}" required><br><br>
+        <input type="text" id="shopName" name="shopName" value="{{.ShopName}}"><br><br>
 
         <label for="shopAddress">Shop Address:</label>
-        <input type="text" id="shopAddress" name="shopAddress" value="{{.ShopAddress}}" required><br><br>
+        <input type="text" id="shopAddress" name="shopAddress" value="{{.ShopAddress}}"><br><br>
 
         <label for="costPerPage">Cost Per Page:</label>
-        <input type="number" step="0.01" id="costPerPage" name="costPerPage" value="{{.CostPerPage}}" required><br><br>
+        <input type="number" step="0.01" id="costPerPage" name="costPerPage" value="{{.CostPerPage}}"><br><br>
 
         <label for="printerURI">Printer URI:</label>
-        <input type="text" id="printerURI" name="printerURI" value="{{.PrinterURI}}" required><br><br>
+        <input type="text" id="printerURI" name="printerURI" value="{{.PrinterURI}}"><br><br>
 
-        <button type="submit">Update Configuration</button>
+        <label for="logoPath">Logo Path:</label>
+        <input type="text" id="logoPath" name="logoPath" value="{{.LogoPath}}"><br><br>
+
+        <label for="accessCode">Access Code:</label>
+        <input type="text" id="accessCode" name="accessCode" value="{{.AccessCode}}" readonly>
+        <button type="button" onclick="regenerateAccessCode()">Regenerate Access Code</button><br><br>
+
+        <button type="submit">Save Changes</button>
     </form>
 
-    <h2>Access Code Management</h2>
-    <p>Today's Access Code: <strong>{{.AccessCode}}</strong></p>
-    <form action="/admin/regenerate-code" method="POST">
-        <button type="submit">Regenerate Access Code</button>
-    </form>
+    
 </body>
 </html>

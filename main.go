@@ -23,6 +23,7 @@ func main() {
 	http.HandleFunc("/admin", handlers.AdminHandler)
 	http.HandleFunc("/admin/regenerate-code", handlers.RegenerateAccessCodeHandler)
 	http.HandleFunc("/upload", handlers.UploadHandler)
+	http.HandleFunc("/print-access-code", handlers.AccessCodeHandler)
 
 	// Initialize the printer service
 	print.InitializePrinterService()

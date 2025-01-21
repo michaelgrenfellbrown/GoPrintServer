@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"html/template"
 	"net/http"
 	"printserver/config"
@@ -10,52 +11,76 @@ import (
 // AdminHandler serves the admin page
 func AdminHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		// Render the admin page with the current configuration
 		tmpl, err := template.ParseFiles("templates/admin.html")
 		if err != nil {
 			http.Error(w, "Error loading admin template", http.StatusInternalServerError)
 			return
 		}
-
-		// Pass the AppConfig fields to the template
-		data := map[string]interface{}{
-			"ShopName":    config.AppConfig.ShopName,
-			"ShopAddress": config.AppConfig.ShopAddress,
-			"CostPerPage": config.AppConfig.CostPerPage,
-			"PrinterURI":  config.AppConfig.PrinterURI,
-			"AccessCode":  config.AppConfig.AccessCode,
-		}
-		tmpl.Execute(w, data)
+		tmpl.Execute(w, config.AppConfig)
 	} else if r.Method == http.MethodPost {
-		// Handle form submissions to update config.json
-		r.ParseForm()
-		config.AppConfig.ShopName = r.FormValue("shopName")
-		config.AppConfig.ShopAddress = r.FormValue("shopAddress")
-		config.AppConfig.CostPerPage = parseFloat(r.FormValue("costPerPage"), 0.50)
-		config.AppConfig.PrinterURI = r.FormValue("printerURI")
-		config.AppConfig.AccessCode = r.FormValue("accessCode")
-
-		err := config.SaveConfig()
+		err := r.ParseForm()
 		if err != nil {
-			http.Error(w, "Failed to save config", http.StatusInternalServerError)
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
 
-		// Redirect back to the admin page
+		config.AppConfig.ShopName = r.FormValue("shopName")
+		config.AppConfig.ShopAddress = r.FormValue("shopAddress")
+		config.AppConfig.PrinterURI = r.FormValue("printerURI")
+		config.AppConfig.LogoPath = r.FormValue("logoPath")
+
+		costPerPage, err := strconv.ParseFloat(r.FormValue("costPerPage"), 64)
+		if err != nil {
+			http.Error(w, "Invalid cost per page", http.StatusBadRequest)
+			return
+		}
+		config.AppConfig.CostPerPage = costPerPage
+
+		if err := config.SaveConfig(); err != nil {
+			http.Error(w, "Error saving configuration", http.StatusInternalServerError)
+			return
+		}
+
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 	}
 }
 
+/*
+*
 // parseFloat is a helper function to parse form values into float64
-func parseFloat(value string, defaultValue float64) float64 {
-	parsed, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		return defaultValue
-	}
-	return parsed
-}
 
+	func parseFloat(value string, defaultValue float64) float64 {
+		parsed, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return defaultValue
+		}
+		return parsed
+	}
+
+*
+*/
 func RegenerateAccessCodeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
 	newCode := config.RegenerateAccessCode()
 	w.Write([]byte("New Access Code: " + newCode))
+
+	// Update the access code in AppConfig
+	config.AppConfig.AccessCode = newCode
+
+	// Save the updated AppConfig to config.json
+	err := config.SaveConfig()
+	if err != nil {
+		http.Error(w, "Failed to save access code", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the new access code
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"newAccessCode": newCode,
+	})
 }
